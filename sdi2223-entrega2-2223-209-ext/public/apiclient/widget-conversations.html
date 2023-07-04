@@ -1,0 +1,111 @@
+<div id="widget-conversations">
+  <table class="table table-hover">
+    <thead>
+    <tr>
+      <th>Offer Title</th>
+      <th>Seller</th>
+      <th>Chat</th>
+      <th>Close Chat</th>
+    </tr>
+    </thead>
+    <tbody id="conversationsTableBody"></tbody>
+  </table>
+</div>
+
+<script>
+  window.history.pushState("", "", "/apiclient/client.html?w=conversations");
+  var conversations;
+  var selecetedConversationId;
+
+  function loadConversations() {
+    $.ajax({
+      url: URLbase + "/conversations",
+      type: "GET",
+      data: {},
+      dataType: 'json',
+      headers: {"token": token},
+      success: function (response) {
+          conversations = response.conversations;
+          updateConversationsTable(conversations);
+      },
+      error: function (error) {
+          $("#main-container").load("widget-login.html");
+      }
+    });
+  }
+
+  function updateConversationsTable(conversations) {
+    $("#conversationsTableBody").empty(); // Vaciar la tabla
+    for (var i = 0; i < conversations.length; i++) {
+      (function (index) {
+        // Obtener el nombre de la oferta
+        getOfferName(conversations[index].offerId, function (offerName) {
+          // Agregar una nueva fila a la tabla con el nombre de la oferta
+          $("#conversationsTableBody").append(
+                  "<tr id=" + conversations[index]._id + ">" +
+                  "<td>" + offerName + "</td>" +
+                  "<td>" + conversations[index].seller + "</td>" +
+                  "<td><a onclick=openConversation('" + conversations[index]._id + "')>Open Chat</a></td>" +
+                  "<td><a onclick=conversationDelete('" + conversations[index]._id + "') >Close Chat</a></td>" +
+                  "</tr>"
+          );
+        });
+      })(i);
+    }
+  }
+
+  function getOfferName(offerId, callback) {
+    $.ajax({
+      url: URLbase + "/offers/" + offerId,
+      type: "GET",
+      data: {},
+      dataType: 'json',
+      headers: { "token": token },
+      success: function (response) {
+        console.log(response);
+        let offerName = response.offer.title;
+        callback(offerName);
+      },
+      error: function (error) {
+        console.log("Error al obtener el nombre de la oferta: " + offerId);
+        callback("");
+      }
+    });
+  }
+  function conversationDelete(_id) {
+    $.ajax({
+      url: URLbase + "/conversations/delete/" + _id,
+      type: "GET",
+      data: {},
+      dataType: 'json',
+      headers: {"token": token},
+      success: function (response) {
+        console.log("Conversación eliminada: " + _id);
+        $("#" + _id).remove();
+        // eliminar el <tr> de la canción
+      }, error: function (error) {
+        $("#main-container").load("widget-conversations.html");
+      }
+    });
+  }
+
+  function openConversation(_id) {
+    console.log(_id)
+    $.ajax({
+      url: URLbase + "/conversations/" + _id,
+      type: "GET",
+      data: {},
+      dataType: 'json',
+      headers: {"token": token},
+      success: function (response) {
+        console.log("Conversación abierta: " + _id);
+        selecetedConversationId = _id;
+        $("#main-container").load("widget-conversation.html");
+      }, error: function (error) {
+        $("#main-container").load("widget-conversations.html");
+      }
+    });
+  }
+
+  loadConversations();
+</script>

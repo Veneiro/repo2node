@@ -1,0 +1,26 @@
+{% extends "layout.twig" %}
+{% block title %} Ofertas destacadas {% endblock %}
+{% block main_container %}
+    <h2>Ofertas destacadas</h2>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>Título</th>
+                <th>Detalle</th>
+                <th>Precio</th>
+                <th class="col-md-1"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for offer in offers %}
+                <tr>
+                    <td>{{ offer.title }}</td>
+                    <td>{{ offer.detail }}</td>
+                    <td>{{ offer.price }}€</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

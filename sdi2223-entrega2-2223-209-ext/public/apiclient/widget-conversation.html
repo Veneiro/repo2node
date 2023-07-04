@@ -1,0 +1,79 @@
+<div id="widget-conversation">
+    <!-- Chat with messages for each user-->
+    <div id="chat">
+        <div id="messages">
+            <!-- Messages -->
+        </div>
+        <div id="message-form">
+            <input type="text" id="message" placeholder="Escribe un mensaje..."/>
+            <button id="send-button" onClick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    window.history.pushState("", "", "/apiclient/client.html?w=conversation");
+    var messages;
+
+    function loadConversation() {
+        $.ajax({
+            url: URLbase + "/conversations/" + selecetedConversationId,
+            type: "GET",
+            data: {},
+            dataType: 'json',
+            headers: {"token": token},
+            success: function (response) {
+                messages = response.messages;
+                updateMessages();
+            },
+            error: function (error) {
+                $("#main-container").load("widget-conversations.html");
+            }
+        });
+    }
+
+    function updateMessages() {
+        $("#messages").empty();
+        $("#message").focus(); // Mantener el foco en el cuadro de texto del mensaje
+        for (let i = 0; i < messages.length; i++) {
+            $("#messages").append("<div class='message'>" + messages[i].sender + ": " + messages[i].message + "</div>");
+        }
+    }
+
+    function sendMessage() {
+        submitMessage();
+    }
+
+    function submitMessage() {
+        var message = $("#message").val();
+        if (message.trim() === "") {
+            return; // Si el mensaje está vacío o contiene solo espacios en blanco, no se envía
+        }
+        $.ajax({
+            url: URLbase + "/conversations/" + selecetedConversationId,
+            type: "POST",
+            data: {message: message},
+            dataType: 'json',
+            headers: {"token": token},
+            success: function (response) {
+                messages = response.messages;
+                updateMessages();
+                $("#main-container").load("widget-conversation.html");
+            },
+            error: function (error) {
+                $("#main-container").load("widget-login.html");
+            }
+        });
+    }
+
+    // Añadir evento "keydown" al campo de mensaje
+    $("#message").on("keydown", function (event) {
+        if (event.keyCode === 13) {
+            event.preventDefault(); // Evitar comportamiento por defecto del "Enter"
+            sendMessage(); // Llamar a la función para enviar el mensaje
+        }
+    });
+
+    loadConversation();
+</script>
